@@ -71,6 +71,7 @@ namespace Microsoft.ReportingServices.RdlExpressions
 			CheckAndAddReference(roslynReferences, Assembly.Load("System.Private.CoreLib"));
 			CheckAndAddReference(roslynReferences, Assembly.Load("Microsoft.VisualBasic.Core"));
 			CheckAndAddReference(roslynReferences, Assembly.Load("System.Runtime"));
+			CheckAndAddReference(roslynReferences, typeof(Uri).Assembly);
 			CheckAndAddReference(roslynReferences, Assembly.Load("System.Text.RegularExpressions"));
 #if NETSTANDARD2_0_OR_GREATER
 			CheckAndAddReference(roslynReferences, Assembly.Load("netstandard"));
