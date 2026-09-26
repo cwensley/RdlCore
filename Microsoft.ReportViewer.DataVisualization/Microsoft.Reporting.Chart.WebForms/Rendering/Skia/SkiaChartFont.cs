@@ -8,8 +8,8 @@ namespace Microsoft.Reporting.Chart.WebForms.Rendering.Skia
 	/// Spike adapter — wraps an <see cref="SKFont"/>/<see cref="SKTypeface"/> pair behind
 	/// <see cref="IChartFont"/>. GDI+ measures font size in points at 96 DPI by convention
 	/// (<see cref="GraphicsUnit.Point"/>); Skia's <see cref="SKFont.Size"/> is in raw pixels,
-	/// so sizes are converted 1pt = 96/72 px on construction (see spike report — text-metric
-	/// parity note).
+	/// so construction starts at 96 DPI. SkiaChartGraphics updates the native size to
+	/// the bound surface's DPI before measuring or drawing; SizeInPoints stays logical.
 	/// </summary>
 	internal sealed class SkiaChartFont : IChartFont
 	{

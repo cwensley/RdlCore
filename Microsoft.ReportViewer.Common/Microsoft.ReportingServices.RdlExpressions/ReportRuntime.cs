@@ -2213,7 +2213,7 @@ namespace Microsoft.ReportingServices.RdlExpressions
 					RegisterRuntimeErrorInExpression(ref result, e);
 				}
 			}
-			return ProcessIntegerOrFloatResult(result).Value;
+			return ProcessChartIntervalResult(result);
 		}
 
 		internal string EvaluateChartTickMarksIntervalTypeExpression(Microsoft.ReportingServices.ReportIntermediateFormat.ChartTickMarks chartTickMarks, string objectName)
@@ -4505,7 +4505,7 @@ namespace Microsoft.ReportingServices.RdlExpressions
 					RegisterRuntimeErrorInExpression(ref result, e);
 				}
 			}
-			return ProcessIntegerOrFloatResult(result).Value;
+			return ProcessChartIntervalResult(result);
 		}
 
 		internal string EvaluateChartAxisIntervalTypeExpression(Microsoft.ReportingServices.ReportIntermediateFormat.ChartAxis chartAxis, string objectName)
@@ -5025,7 +5025,7 @@ namespace Microsoft.ReportingServices.RdlExpressions
 					RegisterRuntimeErrorInExpression(ref result, e);
 				}
 			}
-			return ProcessIntegerOrFloatResult(result).Value;
+			return ProcessChartIntervalResult(result);
 		}
 
 		internal string EvaluateChartAxisLabelIntervalTypeExpression(Microsoft.ReportingServices.ReportIntermediateFormat.ChartAxis chartAxis, string objectName)
@@ -5297,7 +5297,7 @@ namespace Microsoft.ReportingServices.RdlExpressions
 					RegisterRuntimeErrorInExpression(ref result, e);
 				}
 			}
-			return ProcessIntegerOrFloatResult(result).Value;
+			return ProcessChartIntervalResult(result);
 		}
 
 		internal string EvaluateChartGridLinesIntervalTypeExpression(Microsoft.ReportingServices.ReportIntermediateFormat.ChartGridLines chartGridLines, string objectName, string propertyName)
@@ -7610,6 +7610,20 @@ namespace Microsoft.ReportingServices.RdlExpressions
 				return true;
 			}
 			return EvaluateSimpleExpression(expression, objectType, objectName, propertyName, out result);
+		}
+
+		private double ProcessChartIntervalResult(VariantResult result)
+		{
+			// Older report definitions return strings for intervals. Keep this coercion
+			// local to chart intervals; zero is the chart engine's automatic interval.
+			if (!result.ErrorOccurred && result.Value is string interval)
+			{
+				if (string.Equals(interval, "Auto", StringComparison.OrdinalIgnoreCase))
+					result.Value = 0d;
+				else if (double.TryParse(interval, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+					result.Value = value;
+			}
+			return ProcessIntegerOrFloatResult(result).Value;
 		}
 
 		private FloatResult ProcessIntegerOrFloatResult(VariantResult result)

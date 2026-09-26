@@ -25,6 +25,17 @@ namespace Microsoft.Reporting.Chart.WebForms
 
 		private Font titleFont;
 
+		internal ChartFontSettings TitleFontSettings { get; set; }
+
+		private IChartFont GetTitleFontResource(ChartGraphics graph)
+		{
+			if (TitleFontSettings != null)
+				return TitleFontSettings.CreateFont(graph.ResourceFactory);
+			return titleFont != null
+				? graph.ResourceFactory.CreateFont(titleFont.FontFamily.Name, titleFont.Size, titleFont.Style, titleFont.Unit)
+				: graph.ResourceFactory.CreateFont(ChartPicture.GetDefaultFontFamilyName(), 8f);
+		}
+
 		private Color titleColor = Color.Black;
 
 		private StringAlignment titleAlignment = StringAlignment.Center;
@@ -1112,7 +1123,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 				}
 				stringFormat.LineAlignment = StringAlignment.Center;
 			}
-			IChartFont bridgedTitleFont = graph.ResourceFactory.CreateFont(TitleFont.FontFamily.Name, TitleFont.Size, TitleFont.Style, TitleFont.Unit);
+			using IChartFont bridgedTitleFont = GetTitleFontResource(graph);
 			graph.DrawStringRel(text.Replace("\\n", "\n"), bridgedTitleFont, graph.ResourceFactory.CreateSolidBrush(TitleColor), titlePosition, stringFormat, GetTextOrientation());
 			if (base.Common.ProcessModeRegions)
 			{
@@ -1278,7 +1289,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 			stringFormat.Alignment = TitleAlignment;
 			stringFormat.Trimming = StringTrimming.EllipsisCharacter;
 			stringFormat.FormatFlags |= StringFormatFlags.LineLimit;
-			IChartFont measureTitleFont = graph.ResourceFactory.WrapFont(TitleFont);
+			using IChartFont measureTitleFont = GetTitleFontResource(graph);
 			SizeF sizeF = graph.MeasureString(text.Replace("\\n", "\n"), measureTitleFont, new SizeF(10000f, 10000f), stringFormat, GetTextOrientation());
 			SizeF sizeF2 = SizeF.Empty;
 			if (stringFormat.Alignment != StringAlignment.Center)
@@ -1438,7 +1449,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 			stringFormat.Alignment = StringAlignment.Center;
 			if (!pointF.IsEmpty && !float.IsNaN(pointF.X) && !float.IsNaN(pointF.Y))
 			{
-				IChartFont bridgedTitleFont = graph.ResourceFactory.CreateFont(TitleFont.FontFamily.Name, TitleFont.Size, TitleFont.Style, TitleFont.Unit);
+				using IChartFont bridgedTitleFont = GetTitleFontResource(graph);
 				graph.DrawStringRel(text.Replace("\\n", "\n"), bridgedTitleFont, graph.ResourceFactory.CreateSolidBrush(TitleColor), pointF, stringFormat, num, GetTextOrientation());
 				if (base.Common.ProcessModeRegions)
 				{
@@ -1890,6 +1901,8 @@ namespace Microsoft.Reporting.Chart.WebForms
 		/// </summary>
 		internal IChartFont GetLabelStyleFontResource(ChartGraphics chartGraph)
 		{
+			if (base.LabelStyle.FontSettings != null)
+				return base.LabelStyle.FontSettings.CreateFont(chartGraph.ResourceFactory);
 			if (base.LabelStyle.font != null)
 			{
 				return chartGraph.ResourceFactory.WrapFont(base.LabelStyle.font);
@@ -1910,7 +1923,8 @@ namespace Microsoft.Reporting.Chart.WebForms
 			titleSize = 0f;
 			if (Title.Length > 0)
 			{
-				SizeF sizeF = chartGraph.MeasureStringRel(Title.Replace("\\n", "\n"), chartGraph.ResourceFactory.WrapFont(TitleFont), new SizeF(10000f, 10000f), chartGraph.ResourceFactory.CreateTextFormat(), GetTextOrientation());
+				using IChartFont measureTitleFont = GetTitleFontResource(chartGraph);
+				SizeF sizeF = chartGraph.MeasureStringRel(Title.Replace("\\n", "\n"), measureTitleFont, new SizeF(10000f, 10000f), chartGraph.ResourceFactory.CreateTextFormat(), GetTextOrientation());
 				float num = 0f;
 				if (AxisPosition == AxisPosition.Bottom || AxisPosition == AxisPosition.Top)
 				{

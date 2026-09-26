@@ -767,6 +767,17 @@ namespace Microsoft.Reporting.Chart.WebForms
 		{
 		}
 
+		internal ChartFontSettings FontSettings { get; set; }
+
+		private IChartFont GetFontResource(ChartGraphics chartGraph)
+		{
+			if (FontSettings != null)
+				return FontSettings.CreateFont(chartGraph.ResourceFactory);
+			// Read the backing field: the public getter constructs a GDI+ Font.
+			return font != null ? chartGraph.ResourceFactory.CreateFont(font.FontFamily.Name, font.Size, font.Style, font.Unit)
+				: chartGraph.ResourceFactory.CreateFont(ChartPicture.GetDefaultFontFamilyName(), 8f);
+		}
+
 		internal void Paint(ChartGraphics chartGraph)
 		{
 			if (!IsVisible())
@@ -774,7 +785,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 				return;
 			}
 			CommonElements common = chart.chartPicture.common;
-			IChartFont bridgedTitleFont = chartGraph.ResourceFactory.WrapFont(Font);
+			using IChartFont bridgedTitleFont = GetFontResource(chartGraph);
 			string text = Text;
 			if (chart != null && chart.LocalizeTextHandler != null)
 			{
@@ -937,7 +948,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 					break;
 				case TextStyle.Frame:
 				{
-					IChartFont bridgedFrameFont = chartGraph.ResourceFactory.CreateFont(Font.FontFamily.Name, Font.Size * 1.3f, Font.Style, Font.Unit);
+					using IChartFont bridgedFrameFont = chartGraph.ResourceFactory.CreateFont(bridgedTitleFont.FontFamilyName, bridgedTitleFont.SizeInPoints * 1.3f, bridgedTitleFont.Style, GraphicsUnit.Point);
 					using IGraphicsPath graphicsPath = chartGraph.ResourceFactory.CreatePath();
 					graphicsPath.AddString(ChartGraphics.GetStackedText(text), bridgedFrameFont, relative2, stringFormat);
 					graphicsPath.CloseAllFigures();
@@ -1022,7 +1033,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 			relative.Width -= 2f * elementSpacing;
 			relative.Height -= 2f * elementSpacing;
 			relative = chartGraph.GetAbsoluteSize(relative);
-			IChartFont bridgedFont = chartGraph.ResourceFactory.WrapFont(Font);
+			using IChartFont bridgedFont = GetFontResource(chartGraph);
 			SizeF size = chartGraph.MeasureString(Text.Replace("\\n", "\n"), bridgedFont, relative, stringFormat, GetTextOrientation());
 			if (BackGroundIsVisible)
 			{

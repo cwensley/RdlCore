@@ -1,3 +1,4 @@
+using Microsoft.Reporting.Chart.WebForms.Rendering;
 using Microsoft.Reporting.Chart.Helpers;
 using Microsoft.Reporting.Chart.WebForms;
 using Microsoft.ReportingServices.Common;
@@ -1754,6 +1755,11 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 		private void RenderAxisLabelFont(ChartAxis chartAxis, Microsoft.Reporting.Chart.WebForms.Axis axis)
 		{
 			Style style = chartAxis.Style;
+			if (!System.OperatingSystem.IsWindows())
+			{
+				axis.LabelStyle.FontSettings = GetChartFontSettings(style, chartAxis.Instance.Style);
+				return;
+			}
 			// GetDefaultFont()/GetFont() return null where System.Drawing.Font can't be
 			// constructed at all (Linux under .NET 10) - leave the property at its own default
 			// rather than assigning null, which would still trip the property setter's side
@@ -2168,6 +2174,11 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 		private void RenderAxisTitleFont(ChartAxisTitle axisTitle, Microsoft.Reporting.Chart.WebForms.Axis axis)
 		{
 			Style style = axisTitle.Style;
+			if (!System.OperatingSystem.IsWindows())
+			{
+				axis.TitleFontSettings = GetChartFontSettings(style, axisTitle.Instance.Style);
+				return;
+			}
 			// See RenderAxisLabelFont's comment: skip the assignment (rather than assigning
 			// null) where Font construction isn't possible on this platform.
 			Font font = (style == null) ? GetDefaultFont() : GetFont(style, axisTitle.Instance.Style);
@@ -4947,9 +4958,25 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 			}
 		}
 
+		private ChartFontSettings GetChartFontSettings(Style style, StyleInstance instance)
+		{
+			if (style == null)
+				return new ChartFontSettings(DefaultFontFamily, 10f, FontStyle.Regular);
+			return new ChartFontSettings(
+				MappingHelper.GetStyleFontFamily(style, instance, DefaultFontFamily),
+				MappingHelper.GetStyleFontSize(style, instance),
+				MappingHelper.GetStyleFontStyle(MappingHelper.GetStyleFontStyle(style, instance),
+					MappingHelper.GetStyleFontWeight(style, instance), MappingHelper.GetStyleFontTextDecoration(style, instance)));
+		}
+
 		private void RenderTitleFont(ChartTitle chartTitle, Title title)
 		{
 			Style style = chartTitle.Style;
+			if (!System.OperatingSystem.IsWindows())
+			{
+				title.FontSettings = GetChartFontSettings(style, chartTitle.Instance.Style);
+				return;
+			}
 			// See RenderAxisLabelFont's comment: skip the assignment (rather than assigning
 			// null) where Font construction isn't possible on this platform.
 			Font font = (style == null) ? GetDefaultFont() : GetFont(style, chartTitle.Instance.Style);
@@ -4962,6 +4989,11 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 		private void RenderLegendTitleFont(ChartLegendTitle chartLegendTitle, Microsoft.Reporting.Chart.WebForms.Legend legend)
 		{
 			Style style = chartLegendTitle.Style;
+			if (!System.OperatingSystem.IsWindows())
+			{
+				legend.TitleFontSettings = GetChartFontSettings(style, chartLegendTitle.Instance.Style);
+				return;
+			}
 			// See RenderAxisLabelFont's comment: skip the assignment (rather than assigning
 			// null) where Font construction isn't possible on this platform.
 			Font font = (style == null) ? GetDefaultFont() : GetFont(style, chartLegendTitle.Instance.Style);
@@ -4974,6 +5006,12 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 		private void RenderLegendFont(ChartLegend chartLegend, Microsoft.Reporting.Chart.WebForms.Legend legend)
 		{
 			Style style = chartLegend.Style;
+			if (!System.OperatingSystem.IsWindows())
+			{
+				legend.FontSettings = GetChartFontSettings(style, chartLegend.Instance.Style);
+				legend.AutoFitText = false;
+				return;
+			}
 			// See RenderAxisLabelFont's comment: skip the assignment (rather than assigning
 			// null) where Font construction isn't possible on this platform - Legend.Font's own
 			// setter has a side effect (AutoFitText = false) that must not fire for a font that

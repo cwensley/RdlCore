@@ -762,8 +762,13 @@ namespace Microsoft.Reporting.Chart.WebForms
 		/// explicitly set" case, e.g. via ChartMapper from RDL style data) is not addressed
 		/// here.
 		/// </summary>
+		internal ChartFontSettings FontSettings { get; set; }
+		internal ChartFontSettings TitleFontSettings { get; set; }
+
 		private IChartFont GetBaseFontResource(ChartGraphics chartGraph)
 		{
+			if (FontSettings != null)
+				return FontSettings.CreateFont(chartGraph.ResourceFactory);
 			if (font != null)
 			{
 				return chartGraph.ResourceFactory.WrapFont(font);
@@ -780,6 +785,8 @@ namespace Microsoft.Reporting.Chart.WebForms
 		/// <summary>Same reasoning as <see cref="GetBaseFontResource"/>, for the separate bold Title-text font.</summary>
 		private IChartFont GetTitleFontResource(ChartGraphics chartGraph)
 		{
+			if (TitleFontSettings != null)
+				return TitleFontSettings.CreateFont(chartGraph.ResourceFactory);
 			if (titleFont != null)
 			{
 				return chartGraph.ResourceFactory.WrapFont(titleFont);

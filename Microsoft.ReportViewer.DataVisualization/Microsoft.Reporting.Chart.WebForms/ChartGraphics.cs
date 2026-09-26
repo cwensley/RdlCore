@@ -998,11 +998,11 @@ namespace Microsoft.Reporting.Chart.WebForms
 					}
 				}
 			}
-			Matrix matrix = null;
+			Matrix3x2? matrix = null;
 			if (angle != 0)
 			{
 				myMatrix = base.GetTransform().RotateAt(angle, empty);
-				matrix = base.Transform;
+				matrix = base.GetTransform();
 				base.SetTransform(myMatrix);
 			}
 			RectangleF rect = Rectangle.Empty;
@@ -1080,7 +1080,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 					region.Exclude(GetAbsoluteRectangle(boundaryRect));
 					if (!region.IsEmpty(this))
 					{
-						base.Transform = matrix;
+						base.SetTransform(matrix.Value);
 						float num3 = region.GetBounds(this).Width / (float)Math.Cos((double)((float)Math.Abs(angle) / 180f) * Math.PI);
 						if (axis.AxisPosition == AxisPosition.Left)
 						{
@@ -1233,16 +1233,16 @@ namespace Microsoft.Reporting.Chart.WebForms
 			}
 			if (matrix != null)
 			{
-				base.Transform = matrix;
+				base.SetTransform(matrix.Value);
 			}
 		}
 
-		private void DrawSecondRowLabelBoxMark(Axis axis, Color markColor, RectangleF absPosition, SizeF labelSize, bool truncatedLeft, bool truncatedRight, Matrix originalTransform)
+		private void DrawSecondRowLabelBoxMark(Axis axis, Color markColor, RectangleF absPosition, SizeF labelSize, bool truncatedLeft, bool truncatedRight, Matrix3x2? originalTransform)
 		{
-			Matrix transform = base.Transform;
+			Matrix3x2 transform = base.GetTransform();
 			if (originalTransform != null)
 			{
-				base.Transform = originalTransform;
+				base.SetTransform(originalTransform.Value);
 			}
 			PointF value = new PointF(absPosition.X + absPosition.Width / 2f, absPosition.Y + absPosition.Height / 2f);
 			Point.Round(value);
@@ -1298,11 +1298,11 @@ namespace Microsoft.Reporting.Chart.WebForms
 			pen?.Dispose();
 			if (originalTransform != null)
 			{
-				base.Transform = transform;
+				base.SetTransform(transform);
 			}
 		}
 
-		private void DrawSecondRowLabelMark(Axis axis, Color markColor, RectangleF absPosition, SizeF labelSize, LabelMark labelMark, bool truncatedLeft, bool truncatedRight, Matrix oldTransform)
+		private void DrawSecondRowLabelMark(Axis axis, Color markColor, RectangleF absPosition, SizeF labelSize, LabelMark labelMark, bool truncatedLeft, bool truncatedRight, Matrix3x2? oldTransform)
 		{
 			if (axis.MajorTickMark.LineWidth == 0 || axis.MajorTickMark.LineStyle == ChartDashStyle.NotSet || axis.MajorTickMark.LineColor == Color.Empty)
 			{

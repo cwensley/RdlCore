@@ -132,7 +132,8 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 				try
 				{
 					font = CreateSafeFont(familyName, size, style);
-					m_fonts.Add(font);
+					if (font != null)
+						m_fonts.Add(font);
 					return font;
 				}
 				catch (Exception ex)
@@ -201,6 +202,10 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 
 			private Font CreateSafeFont(string familyName, float size, FontStyle fontStyle)
 			{
+				// Chart rendering supplies its own portable defaults when a GDI+ font
+				// cannot exist. Avoid throwing and catching for every mapped style.
+				if (!OperatingSystem.IsWindows())
+					return null;
 				FontFamily fontFamily = GetFontFamily(familyName);
 				if (fontFamily == null)
 				{
@@ -330,6 +335,8 @@ namespace Microsoft.ReportingServices.OnDemandReportRendering
 		{
 			return m_fontCache.GetDefaultFont();
 		}
+
+		protected string DefaultFontFamily => m_fontCache.DefaultFontFamily;
 
 		internal Font GetDefaultFontFromCache(int id)
 		{

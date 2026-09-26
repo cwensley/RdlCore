@@ -379,6 +379,10 @@ namespace Microsoft.Reporting.Chart.WebForms.ChartTypes
 
 		public void DrawLabels(CommonElements common, ChartGraphics graph, ChartArea area, DataPoint point, int pointIndex, Series series, RectangleF rectangle)
 		{
+			// Do not allocate GDI+ label resources when there is no label to draw.
+			if (!point.ShowLabelAsValue && point.Label.Length == 0)
+				return;
+
 			StringFormat format = new StringFormat();
 			format.Alignment = StringAlignment.Center;
 			format.LineAlignment = StringAlignment.Center;

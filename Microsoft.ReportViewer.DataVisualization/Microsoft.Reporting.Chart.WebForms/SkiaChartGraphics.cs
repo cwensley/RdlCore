@@ -43,7 +43,13 @@ namespace Microsoft.Reporting.Chart.WebForms
 			_ => throw new NotSupportedException($"Spike scope: unrecognized IBrush implementation: {brush.GetType()}"),
 		};
 
-		private static SKFont Native(IChartFont font) => ((SkiaChartFont)font).NativeFont;
+		private SKFont Native(IChartFont font)
+		{
+			var native = ((SkiaChartFont)font).NativeFont;
+			// Layout and drawing must both use the bound output surface's resolution.
+			native.Size = font.SizeInPoints * dpiX / 72f;
+			return native;
+		}
 
 		private static SKPath Native(IGraphicsPath path) => ((SkiaGraphicsPath)path).NativePath;
 

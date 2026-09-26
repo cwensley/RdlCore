@@ -29,6 +29,18 @@ namespace Microsoft.Reporting.Chart.WebForms
 
 		internal Font font;
 
+		internal ChartFontSettings FontSettings { get; set; }
+
+		private IChartFont GetFontResource(ChartGraphics graph)
+		{
+			if (axis.autoLabelFont != null)
+				return graph.ResourceFactory.CreateFont(axis.autoLabelFont.FontFamilyName, axis.autoLabelFont.SizeInPoints, axis.autoLabelFont.Style, GraphicsUnit.Point);
+			if (FontSettings != null)
+				return FontSettings.CreateFont(graph.ResourceFactory);
+			return font != null ? graph.ResourceFactory.CreateFont(font.FontFamily.Name, font.Size, font.Style, font.Unit)
+				: graph.ResourceFactory.CreateFont(ChartPicture.GetDefaultFontFamilyName(), 8f);
+		}
+
 		private Color fontColor = Color.Black;
 
 		internal int fontAngle;
@@ -408,10 +420,8 @@ namespace Microsoft.Reporting.Chart.WebForms
 					{
 						titleColor = item.TitleColor;
 					}
-					// axis.autoLabelFont is IChartFont-typed and never needs Font construction on
-					// Linux (tasks/chart-default-font-cross-platform.md); the Font fallback here
-					// is this Label's own concrete Font property, a separate, still-open gap.
-					IChartFont bridgedTitleFont = axis.autoLabelFont ?? graph.ResourceFactory.WrapFont(Font);
+
+					using IChartFont bridgedTitleFont = GetFontResource(graph);
 					graph.DrawString(item.Title.Replace("\\n", "\n"), bridgedTitleFont, graph.ResourceFactory.CreateSolidBrush(titleColor), array[0], stringFormat);
 					graph.StopAnimation();
 					if (axis.Common.ProcessModeRegions)
@@ -790,7 +800,8 @@ namespace Microsoft.Reporting.Chart.WebForms
 				}
 				InitAnimation(graph, axis.CustomLabels.Count, num);
 				graph.StartAnimation();
-				graph.DrawLabelStringRel(axis, customLabel.RowIndex, customLabel.LabelMark, customLabel.MarkColor, customLabel.Text, customLabel.Image, customLabel.ImageTransparentColor, axis.autoLabelFont ?? graph.ResourceFactory.WrapFont(Font), graph.ResourceFactory.CreateSolidBrush(customLabel.TextColor.IsEmpty ? fontColor : customLabel.TextColor), position, stringFormat, (axis.autoLabelAngle < -90) ? fontAngle : axis.autoLabelAngle, (!TruncatedLabels || customLabel.RowIndex > 0) ? RectangleF.Empty : rectangleF2, customLabel, truncatedLeft, truncatedRight);
+				using IChartFont labelFont = GetFontResource(graph);
+				graph.DrawLabelStringRel(axis, customLabel.RowIndex, customLabel.LabelMark, customLabel.MarkColor, customLabel.Text, customLabel.Image, customLabel.ImageTransparentColor, labelFont, graph.ResourceFactory.CreateSolidBrush(customLabel.TextColor.IsEmpty ? fontColor : customLabel.TextColor), position, stringFormat, (axis.autoLabelAngle < -90) ? fontAngle : axis.autoLabelAngle, (!TruncatedLabels || customLabel.RowIndex > 0) ? RectangleF.Empty : rectangleF2, customLabel, truncatedLeft, truncatedRight);
 				graph.StopAnimation();
 				axis.ScaleSegments.EnforceSegment(null);
 				axis.ScaleSegments.AllowOutOfScaleValues = false;
@@ -1334,7 +1345,7 @@ namespace Microsoft.Reporting.Chart.WebForms
 					}
 					InitAnimation(graph, this.axis.CustomLabels.Count, num3);
 					graph.StartAnimation();
-					IChartFont labelFont = this.axis.autoLabelFont ?? graph.ResourceFactory.WrapFont(Font);
+					using IChartFont labelFont = GetFontResource(graph);
 					graph.DrawLabelStringRel(axis, customLabel.RowIndex, customLabel.LabelMark, customLabel.MarkColor, customLabel.Text, customLabel.Image, customLabel.ImageTransparentColor, labelFont, graph.ResourceFactory.CreateSolidBrush(customLabel.TextColor.IsEmpty ? fontColor : customLabel.TextColor), position, stringFormat, num6, (!TruncatedLabels || customLabel.Row > LabelRow.First) ? RectangleF.Empty : rectangleF, customLabel, truncatedLeft, truncatedRight);
 					graph.StopAnimation();
 					if (stringFormat2 != null)
