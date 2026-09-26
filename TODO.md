@@ -2,6 +2,12 @@
 
 ## Project Status Summary
 
+- [x] Excel image inspection leaves caller-owned streams open; repeated embedded images and all four dashboard chart exports verified on macOS (50 CRM report tests pass).
+
+- [x] Preserve RDL title, axis, and legend font metadata and physical text sizing at 96/300 DPI; 49 CRM report tests pass on macOS, including title size regression and visual inspection of 300-DPI output.
+
+- [x] Verify Revenue Dashboard title/axis fonts, rotated labels, disabled stacked-column labels, and legacy chart intervals on macOS: 32 chart cases render to PDF/PNG; all four chart images visually checked. See `docs/troubleshooting.md`.
+
 Infrastructure complete. Excel Phases 4-5 complete. **Chart engine's GDI+→interface abstraction is now fully done**, including the construction-time crash chase discovered 2026-07-28 (Chart/Gauge model objects couldn't even be constructed on Linux at all): all three GDI+ construction walls (Font, GraphicsPath/HotRegionsList, StringFormat) are fixed and their full caller-migration sweeps are complete, WSL-verified with a real rendered PNG (a Sunburst chart with a Legend, nested rings, and per-node labels — not just a simple bar chart). **Word and IMAGE (JPEG/PNG/BMP) renderers are fully cross-platform now too** (TIFF/EMF remain permanently Windows-only, no portable equivalent). Gauge engine GDI+→interface abstraction is complete (no Skia backend yet — not started, low priority). PDF cross-platform rendering is complete. **Map engine is mid-migration**: Milestone A (interface + adapters) is done, Milestone B (real call-site conversion) is at 10 of ~20 painter files; separately, a real functional-correctness bug (not a cross-platform gap) was found and partially fixed — RDL-defined Map layers never actually populated any spatial elements at all, on any platform, until a 2026-07-31 fix for the static/embedded-point case. Full detail on all of these lives in `docs/`, not here — see the Documentation index below.
 
 ### Current Priorities

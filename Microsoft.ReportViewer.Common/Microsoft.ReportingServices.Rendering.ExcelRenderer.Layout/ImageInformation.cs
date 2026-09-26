@@ -274,7 +274,9 @@ namespace Microsoft.ReportingServices.Rendering.ExcelRenderer.Layout
 			if (m_imageData != null && m_imageData.Length != 0L)
 			{
 				m_imageData.Position = 0L;
-				using SKCodec codec = SKCodec.Create(m_imageData);
+				// The Excel writer/cache owns the source stream; disposing the codec must not close it.
+				using var skiaStream = new SKManagedStream(m_imageData, false);
+				using SKCodec codec = SKCodec.Create(skiaStream);
 				if (codec != null)
 				{
 					m_imageData.Position = 0L;

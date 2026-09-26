@@ -2,6 +2,50 @@
 
 ## Common issues
 
+### Excel export throws ObjectDisposedException in OfficeImageHasher
+
+`SKCodec.Create(Stream)` takes ownership of its stream wrapper and can close the
+managed stream when the codec is disposed. Excel still needs the image stream
+for hashing, packaging, and repeated image placements. `ImageInformation`,
+`ImageFormatTypeHelper`, and `CrossPlatformImageProvider` use
+`SKManagedStream(source, false)` so disposing Skia resources leaves the
+caller-owned source open. The source stream's lifetime remains with the renderer.
+
+### Chart text becomes tiny in high-resolution PDF output
+
+`SkiaChartGraphics` must convert point sizes using the bound surface's DPI for
+both measurement and drawing. The old fixed 96-DPI conversion made fonts shrink
+physically when the chart bitmap was rendered at 300 DPI for PDF output.
+
+`ChartMapper` carries title, axis-label, axis-title, legend, and legend-title
+styles as `ChartFontSettings` on non-Windows hosts. The model creates backend
+font resources from that metadata, retaining RDL font family, point size, weight,
+and style instead of dropping them when `System.Drawing.Font` is unavailable.
+The Windows mapping continues to use its existing concrete font path.
+
+### Revenue Dashboard charts are blank on macOS/Linux
+
+`Title`, `Axis`, and `Label` rendering previously read lazy `System.Drawing.Font`
+properties when no explicit font was available. These paths now create owned
+font resources through the selected rendering backend. `StackedColumnChart`
+also skips label resources entirely when the point has no label enabled.
+Enabled stacked-column smart labels still use the legacy GDI+ path.
+Rotated axis labels and their second-row marks use `Matrix3x2` and the backend's
+`GetTransform` / `SetTransform`, avoiding `System.Drawing.Drawing2D.Matrix`.
+The mapper skips unsupported GDI+ font construction on non-Windows hosts.
+
+Verified with the CRM's actual Revenue Dashboard chart definitions and synthetic
+data on macOS arm64: 32 cases (four charts, four grouping modes, numeric and legacy
+string intervals) render to PDF/PNG without swallowed chart exceptions; PNGs
+contain colored data and all four chart types were visually checked. This does
+not establish full Windows layout parity or support for enabled smart labels.
+
+Chart axis, label, grid-line, and tick-mark interval expressions accept legacy
+string values (`"Auto"` means zero/automatic; numeric strings use invariant
+parsing) through `ReportRuntime.ProcessChartIntervalResult`. Other numeric
+properties retain their existing validation. New report definitions should use
+numeric intervals directly.
+
 ### Renderer tests fail to build
 
 Check that the required NuGet packages are restored and that the test project references the common rendering project correctly.

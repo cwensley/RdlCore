@@ -24,7 +24,9 @@ namespace Microsoft.ReportingServices.Rendering.ExcelRenderer
 			try
 			{
 				imageStream.Position = 0;
-				using SKCodec codec = SKCodec.Create(imageStream);
+				// The Excel writer/cache owns the source stream; disposing the codec must not close it.
+				using var skiaStream = new SKManagedStream(imageStream, false);
+				using SKCodec codec = SKCodec.Create(skiaStream);
 
 				if (codec == null)
 					return null;
@@ -71,7 +73,8 @@ namespace Microsoft.ReportingServices.Rendering.ExcelRenderer
 		{
 			imageStream.Position = 0;
 			var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
-			using (SKCodec codec = SKCodec.Create(imageStream))
+			using (var skiaStream = new SKManagedStream(imageStream, false))
+			using (SKCodec codec = SKCodec.Create(skiaStream))
 			using (SKBitmap bitmap = new SKBitmap(info))
 			{
 				codec.GetPixels(info, bitmap.GetPixels());
@@ -94,7 +97,8 @@ namespace Microsoft.ReportingServices.Rendering.ExcelRenderer
 		public byte[] EncodeToPng(Stream imageStream)
 		{
 			imageStream.Position = 0;
-			using (SKBitmap bitmap = SKBitmap.Decode(imageStream))
+			using (var skiaStream = new SKManagedStream(imageStream, false))
+			using (SKBitmap bitmap = SKBitmap.Decode(skiaStream))
 			using (SKData data = bitmap.Encode(SKEncodedImageFormat.Png, 100))
 			{
 				return data.ToArray();

@@ -91,7 +91,9 @@ namespace Microsoft.ReportingServices.Rendering.ExcelRenderer.Excel
 			try
 			{
 				imageStream.Position = 0;
-				using SKCodec codec = SKCodec.Create(imageStream);
+				// The Excel writer/cache owns the source stream; disposing the codec must not close it.
+				using var skiaStream = new SKManagedStream(imageStream, false);
+				using SKCodec codec = SKCodec.Create(skiaStream);
 				imageStream.Position = 0;
 				if (codec == null)
 					return ImageFormatType.Unknown;
