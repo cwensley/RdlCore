@@ -11,6 +11,7 @@
 		<SignAssembly>True</SignAssembly>
 		<AssemblyOriginatorKeyFile>..\RdlCore.snk</AssemblyOriginatorKeyFile>
 		<NoWarn>$(NoWarn);CA1416</NoWarn>
+		<GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
 	</PropertyGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="**\*.gif" />
